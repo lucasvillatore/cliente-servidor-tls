@@ -5,7 +5,7 @@ from servidor import HOST as HOST_SERVER, PORT as PORT_SERVER
 
 hostname='example.org'
 host = "localhost"
-port = 2021
+port = 20232
 
 
 

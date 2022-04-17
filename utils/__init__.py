@@ -4,7 +4,7 @@ MESSAGE_SIZE_IN_BYTES = 1024
 
 
 def create_context(type, incoming, outgoing, **kwargs):
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context = ssl.SSLContext(type)
     context.load_cert_chain('./utils/cert.pem', './utils/key.pem')
     tls = context.wrap_bio(incoming, outgoing, **kwargs)
 

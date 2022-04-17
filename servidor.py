@@ -7,7 +7,7 @@ from utils import do_handshake, MESSAGE_SIZE_IN_BYTES, create_context
 from socket import socket, AF_INET, SOCK_STREAM
 
 HOST = "localhost"
-PORT = 8002
+PORT = 8003
 
 def make_connection(incoming, outgoing):
 
