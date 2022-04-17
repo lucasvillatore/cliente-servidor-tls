@@ -1,0 +1,11 @@
+CERT_FILE='cert.pem'
+KEY_FILE='key.pem'
+
+SUBJECT="/C=$COUNTRY"
+SUBJECT+="/ST=$STATE" 
+SUBJECT+="/L=$LOCALITY" 
+SUBJECT+="/O=$ORGANIZATION" 
+SUBJECT+="/OU=$ORGANIZATION_UNIT" SUBJECT+="/CN=$COMMON_NAME" 
+
+openssl req -new -x509 -days 365 -nodes -out $CERT_FILE -keyout $KEY_FILE \
+-subj "$SUBJECT"

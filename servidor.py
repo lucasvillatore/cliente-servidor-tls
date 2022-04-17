@@ -7,7 +7,7 @@ from utils import do_handshake, MESSAGE_SIZE_IN_BYTES, create_context
 from socket import socket, AF_INET, SOCK_STREAM
 
 HOST = "localhost"
-PORT = 8003
+PORT = 8005
 
 def make_connection(incoming, outgoing):
 
@@ -16,9 +16,15 @@ def make_connection(incoming, outgoing):
     server = socket(AF_INET, SOCK_STREAM)
     server.bind((HOST, PORT))
     server.listen(1)
+    # server.setblocking(False)
 
+    print(f"Server up on port {PORT}")
+    print("Waiting for client connect")
     connection, address = server.accept()
-    do_handshake(tls, server, incoming, outgoing)
+    connection.setblocking(False)
+    print("Connected by {}".format(address))
+
+    do_handshake(tls, connection, incoming, outgoing)
 
 
     return {
