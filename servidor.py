@@ -9,7 +9,7 @@ from utils import do_handshake, MESSAGE_SIZE_IN_BYTES, treat_buffer_read_message
 from socket import socket, AF_INET, SOCK_STREAM
 
 HOST = "localhost"
-PORT = 8010
+PORT = 8011
 
 def make_connection(incoming, outgoing):
 
