@@ -32,13 +32,412 @@
             <p>
                 <b>Servidor:</b> Para começar a criarmos nosso servidor, vamos precisar definir um host, e uma porta
                 para conseguir receber requisições vindo de um cliente.<br>
+                Primeiramente, precisamos definir um host, uma porta e configurar o TLS
             </p>
-            vamos precisar definir um host, ouvir uma porta e configurar o TLS
+            <p>
+                Usaremos o localhost no nosso servidor e utilizaremos a porta 8010:
+            </p>
+            <img src="./hosteporta.png" alt="host e porta">
+            <p>
+                Agora precisamos subir uma instância do servidor. Para isso precisamos:
+                <ol>
+                    <li>Criar um socket</li>
+                    <li>"Mapear" nosso servidor para o localhost e a porta que escolhemos</li>
+                    <li>Ouvir as requisições</li>
+                    <li>Aceitar novas conexões com clientes</li>
+                </ol>
+
+            </p>
+            <p>
+                <b>1 Passo - Criar um socket</b>
+            </p>
+            <p>
+                Em python, usamos a biblioteca <i>socket</i> para lidar com esse tipo de dado<br>
+                Defina uma váriavel <i>server</i> criando uma nova instância de um socket
+            </p>
+
+            <code>
+                server = socket(AF_INET, SOCK_STREAM)
+            </code>
+            <br>
+            <p>
+                <b>2 Passo - Mapear nosso servidor</b>
+            </p>
+            <p>
+                Agora precisamos mapear nosso servido para a porta e o endereço que escolhemos.<br>
+                Para isso, usamos o método <i>bind((host, port))</i> da biblioteca SSL, usando a instância de socket que
+                acabamos de criar e as váriaveis de HOST e PORT que definimos anteriormente.
+            </p>
+
+            <code>
+                server.bind((HOST, PORT))
+            </code>
+            <p>
+                <b>3 Passo - Ouvir as requisições</b>
+            </p>
+
+            <p>
+                Nessa etapa, começaremos a ouvir as requisições vindo de outros clientes. Para fazer isso, usaremos o
+                método <i>listen</i> da instância de servidor.
+            </p>
+            <code>
+                server.listen(1)
+            </code>
+
+            <p>
+                <b>4 Passo - Aceitar as conexões vindas de clientes</b>
+            </p>
+
+            <p>
+                Por último, agora iremos "ligar" o nosso servidor com os clientes que desejam comunicar com o nosso
+                servidor. <br>
+                Usaremos o método <i>accept</i>. Ele irá retornar uma lista com duas informações:
+                <ul>
+                    <li>Connection - Responsável por fazer a comunicação com o cliente que foi conectado</li>
+                    <li>Address - Endereço de qual cliente fez a conexão com o servidor</li>
+                </ul>
+            </p>
+            <p>Assim, depois de todas as etapas, teremos um código dessa forma e teremos um servidor funcional já:</p>
+            <img src="./criandoservidor.png">
+
+            <p>
+                <b>Cliente:</b> O cliente será bem parecido com o servidor. Para criarmos nosso cliente, precisamos do
+                host usado pelo servidor e a porta.<br>
+                Para subir uma instância de cliente e consumir nosso servidor, precisamos de:
+            </p>
+            <ol>
+                <li>Pegar as informações do HOST e PORTA do nosso servidor</li>
+                <li>Criar um socket</li>
+                <li>Conectar no nosso servidor</li>
+            </ol>
+
+            <p>
+                <b>1 Passo - Pegar as informações do servidor</b>
+            </p>
+            <p>
+                Basta importar do arquivo do servidor as variáveis de HOST e PORT para nosso cliente.
+            </p>
+
+            <code>
+                from servidor import HOST as HOST_SERVER, PORT as PORT_SERVER
+            </code>
+
+            <p>
+                <b>2 Passo - Criar um socket</b>
+            </p>
+            <p>
+                Etapa igual a etapa de criar um socket no servidor.
+            </p>
+            <code>
+                client = socket(AF_INET, SOCK_STREAM)
+            </code>
+
+            <p>
+                <b>3 Passo - Conectar no servidor</b>
+            </p>
+            <p>
+                Com o servidor no ar, basta conectar no cliente usando a função <i>connect</i> passando a porta e o host
+                do nosso servidor
+            </p>
+
+            <code>
+                client.connect((HOST_SERVER, PORT_SERVER))
+            </code>
+
+            pp>Assim, depois de todas as etapas, teremos um cliente que já está conectado no nosso servidor:</p>
+            <img src="./clienteservidor.png">
+
+            <p>
+                <b>Comunicação TLS:</b> Queremos uma comunicação segura e que também seja possível ver a mensagem
+                criptografada que está sendo transmitida.<br>
+                Para isso, precisamos de algumas coisas:
+                <ol>
+                    <li>Gerar um certificado válido</li>
+                    <li>Criar um contexto de TLS, manipulando buffers manualmente</li>
+                    <li>Fazer o handshake com o cliente e o servidor</li>
+                    <li>Enviar as mensagens</li>
+                </ol>
+            </p>
+
+            <p>
+                <b>1 Passo - Gerar um certificado</b>
+            </p>
+
+            <p>
+
+                Para gerar um certificado, basta usar o seguinte comando
+            </p>
+
+            <code>
+                openssl req -new -x509 -days 365 -nodes -out cert.pem -keyout key.pem
+            </code>
+            <p>
+                Esse comando irá gerar um certificado autoassinado e uma chave válida por 365 dias
+            </p>
+
+
+            <p>
+                <b>2 Passo - Criar um contexto TLS</b>
+            </p>
+            <p>
+                Nesse exemplo, nós queremos visualizar a mensagem criptografada e a mensagem descriptografada. Para
+                isso, nós precisamos criar um contexto TLS em que nós conseguimos manipular os buffers onde as mensagens
+                estão armazenadas e conseguir visualizar elas.<br>
+                A biblioteca <i>ssl</i> nos fornece um método para fazer essa comunicação "manual". Basta usar o método
+                <i>wrap_bio</i><br>
+                Para usarmos essa função, precisamos passar como parâmetro dois buffers gerados pela biblioteca ssl e um
+                terceiro parâmetro que dependerá se é o cliente ou o servidor que está criando o contexto TLS<br>
+            </p>
+            <p><b>No servidor:</b></p>
+            <pre>
+
+                <code>
+                    buffers = {
+                        "incoming": ssl.MemoryBio(), # para as mensagens que estão saindo do cliente para o servidor e vice versa
+                        "outgoing": ssl.MemoryBio()  # para as mensagens que estão chegando do cliente para o servidor e vice versa
+                    }
+
+                    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                    context.load_cert_chain(certfile="./cert.pem", keyfile="./key.pem")
+                    tls = context.wrap_bio(buffers['incoming'], buffers['outgoing'], server_side=True) # no servidor, o parametro server_side precisa ser = True
+                    
+                </code>
+            </pre>
+            <p>
+                Teremos um código parecido com esse
+            </p>
+            <img src="./servertls.png">
+            <p><b>No cliente:</b></p>
+            <pre>
+
+                <code>
+                    buffers = {
+                        "incoming": ssl.MemoryBio(), # para as mensagens que estão saindo do cliente para o servidor e vice versa
+                        "outgoing": ssl.MemoryBio()  # para as mensagens que estão chegando do cliente para o servidor e vice versa
+                    }
+                    
+                    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                    context.load_cert_chain(certfile="./cert.pem", keyfile="./key.pem")
+                    context.load_verify_locations('./cert.pem')
+                    tls = context.wrap_bio(buffers['incoming'], buffers['outgoing'], server_hostname=< hostname gerado no certificado >) # no cliente, precisa passar o CN gerado no certificado
+                    
+                </code>
+            </pre>
+            <p>
+                Teremos um código parecido com esse
+            </p>
+            <img src="./clientetls.png">
+            <p>
+                <b>Servidor:</b> Para começar a criarmos nosso servidor, vamos precisar definir um host, e uma porta
+                para conseguir receber requisições vindo de um cliente.<br>
+                Primeiramente, precisamos definir um host, uma porta e configurar o TLS
+            </p>
+
+            <p>
+                <b>3 Passo - Handshake entre o cliente e o servidor.</b>
+            </p>
+            <p>
+                Precisamos estabelecer que estamos fazendo uma conversa de maneira segura entre o cliente e o servidor.
+                Para isso precisamos fazer o handshake entre ambas as partes.<br>
+                Nesse caso, vamos abstrair o código usado no cliente e no servidor, já que ambos serão iguais.
+            </p>
+            <p>
+                <b>No servidor:</b>
+            </p>
+            <pre>
+                <code>
+                    do_handshake(tls, connection, incoming, outgoing) # será usado a connection vindo do metodo accept e o tls gerado na etapa anterior
+                </code>
+            </pre>
+            <p>
+                <b>No cliente:</b>
+            </p>
+            <pre>
+                <code>
+                    do_handshake(tls, client, incoming, outgoing) # será usado client vindo do metodo connect e o tls gerado na etapa anterior
+                </code>
+            </pre>
+
+            <p>
+                <b>Código do_handshake()</b>
+            </p>
+            <pre>
+                <code>
+                    MESSAGE_SIZE_IN_BYTES = 1024
+
+                    def treat_buffer_read_message(socket, incoming):
+                        try:
+                            data = socket.recv(MESSAGE_SIZE_IN_BYTES)
+                        except Exception as err:
+                            data = 0
+
+                        if data != 0:
+                            return incoming.write(data)
+                        return data
+
+                    def treat_buffer_write_message(socket, outgoing):
+                        data = outgoing.read()
+                        if len(data) == 0: 
+                            return
+                        socket.sendall(data)
+
+                        return data
+
+
+                    def do_handshake(tls, socket, incoming, outgoing):
+                        isDone = False
+                        print("Doing handshake")
+                        while not isDone:
+                            try:
+                                tls.do_handshake()
+                                print("Handshake has been done successfully")
+                                isDone = True  
+                            except ssl.SSLWantWriteError:
+                                treat_buffer_read_message(socket, incoming)
+                                treat_buffer_write_message(socket, outgoing)
+                                
+                            except ssl.SSLWantReadError:
+                                treat_buffer_write_message(socket, outgoing)
+                                treat_buffer_read_message(socket, incoming)
+
+                        treat_buffer_write_message(socket, outgoing)
+                </code>
+            </pre>
+            <p>
+                A função do_handshake() terá 2 funções auxiliares.<br>
+            </p>
+            <ul>
+                <li>treat_buffer_read_message()</li>
+                <li>treat_buffer_write_message()</li>
+            </ul>
+            <p>
+                Para fazer o handshake, vamos utilizar o método do_handshake da variável do TLS. Esse método, geralmente
+                irá lançar duas exceções que serão tratadas nesse código<br><br>
+
+                <b>Exceção SSLWantReadError(Segundo a própria documentação do python):</b>
+                <i>A subclass of SSLError raised by a non-blocking SSL socket when trying to read or write data, but
+                    more data needs to be received on the underlying TCP transport before the request can be
+                    fulfilled.</i>
+                <br>
+                Basicamente, precisamos receber mais dados antes antes de tentar ler ou escrever dados no socket. E ai
+                chegamos exatamente nessas duas funções auxiliares<br>
+                <ul>
+                    <li>treat_buffer_write_message(socket,outgoing): tentará receber mais mensagens e armazenará no
+                        buffer</li>
+                    <li>treat_buffer_read_message(socket,outgoing): tentará ler do buffer armazenado e enviar as
+                        mensagens para o outro e retorna a mensagem enviada (será usado mais pra frente para visualizar os dados criptografados)</li>
+                </ul>
+                <br><br>
+                <b>Exceção SSLWantReadError(Segundo a própria documentação do python:</b>
+                <i>A subclass of SSLError raised by a non-blocking SSL socket when trying to read or write data, but more data needs to be sent on the underlying TCP transport before the request can be fulfilled.</i><br>
+                A tratativa é a mesma coisa, porém em ordem diferente.
+            </p>
+            <p>
+                Com isso temos o handshake entre o cliente e o servidor e já conseguimos fazer de maneira segura um envio e recebimento de mensagens.
+            </p>
+            <p>
+                <b>4 Passo - Enviar as mensagens</b>
+            </p>
+            <p>
+                Nós não podemos usar as funções de maneira nativa do TLS porque estamos utilizando buffers. Como estamos fazendo de forma manual para conseguirmos ver as mensagens criptografadas, nós precisamos "reescrever" as funções de send e recv.
+            </p>
+            <p>
+                <b>recv:</b>
+            </p>
+            <p>
+                Precisamos criar um laço para receber as mensagens que estão sendo enviadas pelo outro lado. Precisamos também tratar a exceção do SSLWantReadError
+                igual na função do handshake, como já fizemos a função de tratamento do buffer, basta reutilizar ela.
+                <br><br>
+                Teremos um código similar a esse:
+            </p>
+            <pre>
+                <code>
+                def recv(configuration, buffers):
+                    while True:
+                        try:
+                            return configuration["tls"].read(MESSAGE_SIZE_IN_BYTES)
+                        except ssl.SSLWantReadError:
+                            treat_buffer_read_message(configuration["socket"], buffers["incoming"])
+                </code>
+            </pre>
+            <p>
+                <b>send:</b>
+            </p>
+
+            <p>
+                Para a função de send, usaremos o método write do TLS e a função de tratamento para envio de mensagens. Basta reutilizar ela também
+                <br><br>
+                O código será similar a esse:
+            </p>
+            <pre>
+                <code>
+                def send(message, buffers, configuration):
+                    configuration["tls"].write(message)
+                    treat_buffer_write_message(configuration["socket"], buffers["outgoing"])
+                </code>
+            </pre>
+
+            <p>
+                <b>No servidor:</b>
+            </p>
+            <p>
+                Agora, precisamos receber nossa mensagem do cliente, após subir o servidor estaremos ouvindo as conexões vinda de clientes e precisamos receber <b>todas</b> as mensagens que são enviadas.<br>
+                Para isso, precisaremos estar dentro de um laço infinito, recebendo as mensagens do cliente e devolvendo elas. Usaremos as funções definidas anteriormente.<br><br>
+
+                <b>Atenção:</b> para esse exemplo, as mensagens que serão enviadas para o cliente será a mesma mensagem só que invertida.<br>
+                Exemplo: Cliente envia a string "Olá bom dia". O servidor retornará: "aid mob álO"
+            </p>
+            <aside>
+                Para esse caso, a variável <i>configuration</i> é um objeto armazenando as informações de "tls", "connection" (ou socket) e "address" vistos nas etapas anteriores.
+            </aside>
+
+            <pre>
+                <code>
+                while True:
+                    message = recv(configuration, buffers).decode("utf-8")
+                    print("Message received from client: {}".format(message))
+                    send(message[::-1].encode("utf-8"), buffers, configuration)
             
-            <p>cliente</p>
-            
-            <p>certificado TLS</p>
-        </div>        
+                </code>
+            </pre>
+            <p>
+                <b>No cliente:</b>
+            </p>
+            <p>
+                Iremos utilizar as mesmas funções definidas anteriormente.<br>
+                O código ficará similar a esse
+            </p>
+            <pre>
+                <code>
+                    configuration = make_connection(buffers["incoming"], buffers["outgoing"])
+
+                    while True:
+                        text = input("Digite sua string maluca: ")
+                        
+                        print("--------- SIGILO ---------\n")
+                        
+                        mensagem_criptografada = send(text, buffers, configuration)
+                        mensagem = recv(configuration, buffers)
+                        
+                        print("Mensagem descriptografada: " + str(text))
+                        print("Mensagem criptografada: " + str(mensagem_criptografada))
+                        print("Mensagem do servidor: " + mensagem.decode("utf-8"))
+                        print("--------- SIGILO ---------\n")
+                        
+                        print()
+                        print("--------- INTEGRIDADE ---------\n")
+                        
+                        mensagem_original_modificada_criptografada = send(text + " STRING ALEATORIA NO FINAL", buffers, configuration)
+                        mensagem = recv(configuration, buffers)
+                        
+                        print("Mensagem criptografada original: " + str(mensagem_criptografada))
+                        print("Mensagem criptografada modificada: " + str(mensagem_original_modificada_criptografada))
+                        print("Mensagem do servidor com a mensagem modificada: ", mensagem)
+                        
+                        print("--------- INTEGRIDADE ---------\n")
+                </code>
+            </pre>
+        </div>
     </section>
     <section>
         <h2> Código comentado </h2>
@@ -48,5 +447,5 @@
     </section>
 
 </body>
-    
+
 </html>
